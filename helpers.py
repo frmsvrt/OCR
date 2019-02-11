@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import collections
 
-class AtrDict(dict):
+class AttrDict(dict):
   __getattr__ = dict.__getitem__
   __setattr__ = dict.__setitem__
 

@@ -6,8 +6,11 @@ from PIL import Image, ImageColor, ImageFont, ImageDraw, ImageFilter
 
 import cv2
 import numpy as np
+import skimage.io as io
 
 from configs import generator_cfg
+
+DATA_PATH = './data/'
 
 def LetterRange(start, end):
     return list(map(chr, range(ord(start), ord(end) + 1)))
@@ -33,12 +36,12 @@ def generate_horizontal_text(text, font, text_color, font_size, space_width):
 
         roll = np.random.random()
         if roll > 0.77:
-            txt_img = Image.open(random.choice(cfg_gen.bgs))
+            txt_img = Image.open(random.choice(cfg.bgs))
             h, w = txt_img.size
             xs, ys = np.random.randint(h-text_width), np.random.randint(w-text_height)
             txt_img = txt_img.crop((xs, ys, xs+text_width, ys+text_height))
         else:
-            txt_img = Image.new('RGBA', (text_width, text_height), (0, 0, 0, 0))
+            txt_img = Image.new('RGB', (text_width, text_height), (0, 0, 0, 0))
         # print(txt_img.size)
 
         txt_draw = ImageDraw.Draw(txt_img)
@@ -56,3 +59,18 @@ def generate_horizontal_text(text, font, text_color, font_size, space_width):
             txt_draw.text((sum(words_width[0:i]) + i * int(space_width), 0), w, fill=fill, font=image_font)
 
         return txt_img
+
+
+if __name__ == '__main__':
+    cfg = generator_cfg()
+    font = random.choice(cfg.fonts)
+    fs = random.choice(cfg.fs)
+    text = random.choice(cfg.d)
+    img = generate_horizontal_text(text,
+                                   font=font,
+                                   font_size=fs,
+                                   space_width=1.3,
+                                   text_color='black')
+    if np.random.random() > 0.66:
+        img = cv2.filter2D(np.array(img), -1, kernel)
+    io.imsave(file_ids + '.jpeg', np.array(img))
