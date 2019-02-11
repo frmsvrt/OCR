@@ -2,3 +2,5 @@
 ./ctpn/*.*
 __pycache__
 .ipynb_checkpoints
+.*jpeg
+./data/*.*
