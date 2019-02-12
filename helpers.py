@@ -7,12 +7,9 @@ class AttrDict(dict):
   __getattr__ = dict.__getitem__
   __setattr__ = dict.__setitem__
 
-class strLabelConverter(object):
+class Converter(object):
     def __init__(self, alphabet, ignore_case=True):
-        self._ignore_case = ignore_case
-        if self._ignore_case:
-            alphabet = alphabet.lower()
-        self.alphabet = alphabet + '-'  # for `-1` index
+        self.alphabet = alphabet + '*'  # for `-1` index
 
         self.dict = {}
         for i, char in enumerate(alphabet):
@@ -20,10 +17,7 @@ class strLabelConverter(object):
 
     def encode(self, text):
         if isinstance(text, str):
-            text = [
-                self.dict[char.lower() if self._ignore_case else char]
-                for char in text
-            ]
+            text = [self.dict[char] for char in text]
             length = [len(text)]
         elif isinstance(text, collections.Iterable):
             length = [len(s) for s in text]
@@ -56,30 +50,13 @@ class strLabelConverter(object):
                 index += l
             return texts
 
-class averager(object):
-    def __init__(self):
-        self.reset()
-
-    def add(self, v):
-        if isinstance(v, Variable):
-            count = v.data.numel()
-            v = v.data.sum()
-        elif isinstance(v, torch.Tensor):
-            count = v.numel()
-            v = v.sum()
-
-        self.n_count += count
-        self.sum += v
-
-    def reset(self):
-        self.n_count = 0
-        self.sum = 0
-
-    def val(self):
-        res = 0
-        if self.n_count != 0:
-            res = self.sum / float(self.n_count)
-        return res
+    def best_path_decode(self, probs):
+        seq_len, batch_size = probs.shape[:2]
+        lengths = torch.IntTensor(batch_size).fill_(seq_len)
+        _, probs = probs.max(2)
+        probs = probs.transpose(1, 0).contiguous().reshape(-1)
+        preds = self.decode(probs, lengths)
+        return preds
 
 def oneHotEncoding(v, v_length, nc):
     batchSize = v_length.size(0)
@@ -92,14 +69,6 @@ def oneHotEncoding(v, v_length, nc):
         v_onehot[i, :length].scatter_(1, label, 1.0)
         acc += length
     return v_onehot
-
-def loadData(v, data):
-    v.data.resize_(data.size()).copy_(data)
-
-def prettyPrint(v):
-    print('Size {0}, Type: {1}'.format(str(v.size()), v.data.type()))
-    print('| Max: %f | Min: %f | Mean: %f' % (v.max().data[0], v.min().data[0],
-                                              v.mean().data[0]))
 
 def assureRatio(img):
     """Ensure imgH <= imgW."""

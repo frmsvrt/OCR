@@ -1,38 +1,27 @@
 import itertools
 import os
 import random
-
+import warnings
+warnings.simplefilter("ignore", UserWarning)
 from PIL import Image, ImageColor, ImageFont, ImageDraw, ImageFilter
-
 import cv2
 import numpy as np
 import skimage.io as io
+from tqdm import tqdm
 
 from configs import generator_cfg
 
 DATA_PATH = './data/'
-
-def LetterRange(start, end):
-    return list(map(chr, range(ord(start), ord(end) + 1)))
-VOCAB = LetterRange('a', 'z') + LetterRange('A', 'Z') + LetterRange('0', '9')
-
-file_ids = [''.join(i) for i in itertools.product(VOCAB, repeat=4)]
-file_index = {f: i for (i, f) in enumerate(file_ids)}
-
 cfg = generator_cfg()
+kernel = np.ones((5,5),np.float32)/27
 
-kernel = np.ones((5,5),np.float32)/15
-
-def generate_horizontal_text(text, font, text_color, font_size, space_width):
+def generate(text, font, text_color, font_size, space_width):
         image_font = ImageFont.truetype(font=font, size=font_size)
-
         words = text.split(' ')
-
         space_width = image_font.getsize(' ')[0] * space_width
-
         words_width = [image_font.getsize(w)[0] for w in words]
-        text_width =  sum(words_width) + int(space_width) * (len(words) - 1) + 5
-        text_height = max([image_font.getsize(w)[1] for w in words]) + 5
+        text_width =  sum(words_width) + int(space_width) * (len(words) - 1)
+        text_height = max([image_font.getsize(w)[1] for w in words])
 
         roll = np.random.random()
         if roll > 0.77:
@@ -41,7 +30,7 @@ def generate_horizontal_text(text, font, text_color, font_size, space_width):
             xs, ys = np.random.randint(h-text_width), np.random.randint(w-text_height)
             txt_img = txt_img.crop((xs, ys, xs+text_width, ys+text_height))
         else:
-            txt_img = Image.new('RGB', (text_width, text_height), (0, 0, 0, 0))
+            txt_img = Image.new('RGB', (text_width, text_height), (255, 255, 255))
         # print(txt_img.size)
 
         txt_draw = ImageDraw.Draw(txt_img)
@@ -56,21 +45,29 @@ def generate_horizontal_text(text, font, text_color, font_size, space_width):
         )
 
         for i, w in enumerate(words):
-            txt_draw.text((sum(words_width[0:i]) + i * int(space_width), 0), w, fill=fill, font=image_font)
+            txt_draw.text((sum(words_width[0:i]) + i * int(space_width), 0),
+                          w,
+                          fill=fill,
+                          font=image_font)
 
         return txt_img
 
 
 if __name__ == '__main__':
     cfg = generator_cfg()
-    font = random.choice(cfg.fonts)
-    fs = random.choice(cfg.fs)
-    text = random.choice(cfg.d)
-    img = generate_horizontal_text(text,
-                                   font=font,
-                                   font_size=fs,
-                                   space_width=1.3,
-                                   text_color='black')
-    if np.random.random() > 0.66:
-        img = cv2.filter2D(np.array(img), -1, kernel)
-    io.imsave(file_ids + '.jpeg', np.array(img))
+    for idx, word in tqdm(enumerate(cfg.d[:100])):
+        font = random.choice(cfg.fonts)
+        fs = random.choice(cfg.fs)
+        space_width = random.choice(cfg.sw)
+        text = cfg.d[idx]
+        img = generate(text,
+                       font=font,
+                       font_size=fs,
+                       space_width=1.3,
+                       text_color=cfg.colors,
+                       )
+        if np.random.random() > 0.71:
+            img = cv2.filter2D(np.array(img), -1, kernel)
+        io.imsave(DATA_PATH+cfg.fnames[idx] + '.jpeg', np.array(img))
+        with open(DATA_PATH+'data.csv', 'a') as f:
+            f.write(DATA_PATH+cfg.fnames[idx]+'.jpeg'+';'+cfg.d[idx])

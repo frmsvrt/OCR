@@ -26,6 +26,8 @@ class LSTM(nn.Module):
         self.embedding = nn.Linear(nh * 2, nout)
         if torch.cuda.is_available():
             self.ngpu = torch.cuda.device_count()
+        else:
+            self.ngpu = 0
 
     def forward(self, input):
         recurrent, _ = data_parallel(
