@@ -66,8 +66,9 @@ if __name__ == '__main__':
                        space_width=1.3,
                        text_color=cfg.colors,
                        )
-        if np.random.random() > 0.71:
-            img = cv2.filter2D(np.array(img), -1, kernel)
+        # add this guy during train as well as shadows and so on
+        # if np.random.random() > 0.71:
+        #    img = cv2.filter2D(np.array(img), -1, kernel)
         io.imsave(DATA_PATH+cfg.fnames[idx] + '.jpeg', np.array(img))
         with open(DATA_PATH+'data.csv', 'a') as f:
             f.write(DATA_PATH+cfg.fnames[idx]+'.jpeg'+';'+cfg.d[idx])

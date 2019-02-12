@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import collections
+import cv2
 
 class AttrDict(dict):
   __getattr__ = dict.__getitem__
@@ -77,3 +78,29 @@ def assureRatio(img):
         main = nn.UpsamplingBilinear2d(size=(h, h), scale_factor=None)
         img = main(img)
     return img
+
+
+class ToTensorTarget(object):
+    """Convert ndarrays in sample to Tensors."""
+
+    def __call__(self, sample):
+        sat_img, label = sample['img'], sample['label']
+        return {'sat': transforms.functional.to_tensor(sat_img.copy()),
+                'label' : sample['label']}
+
+
+class NormalizeTarget(transforms.Normalize):
+    """Normalize a tensor and also return the target"""
+
+    def __call__(self, sample):
+        return {'sat': transforms.functional.normalize(sample['sat'], self.mean, self.std),
+                'mask': sample['mask']}
+
+class Resize(object):
+    """Resize."""
+    def __init__(self, size):
+        self.size = size
+
+    def __call__(self, sample):
+        img = cv2.resize(sample['img'], self.size)
+        return {'img' : img, 'label' : sample['label']}
