@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
+from torchvision import transforms
 import collections
 import cv2
 
@@ -16,6 +17,7 @@ class Converter(object):
         for i, char in enumerate(alphabet):
             self.dict[char] = i + 1
 
+    # TODO: classmethod decorator
     def encode(self, text):
         if isinstance(text, str):
             text = [self.dict[char] for char in text]
@@ -51,7 +53,7 @@ class Converter(object):
                 index += l
             return texts
 
-    def best_path_decode(self, probs):
+    def decode_probs(self, probs):
         seq_len, batch_size = probs.shape[:2]
         lengths = torch.IntTensor(batch_size).fill_(seq_len)
         _, probs = probs.max(2)
@@ -59,33 +61,13 @@ class Converter(object):
         preds = self.decode(probs, lengths)
         return preds
 
-def oneHotEncoding(v, v_length, nc):
-    batchSize = v_length.size(0)
-    maxLength = v_length.max()
-    v_onehot = torch.FloatTensor(batchSize, maxLength, nc).fill_(0)
-    acc = 0
-    for i in range(batchSize):
-        length = v_length[i]
-        label = v[acc:acc + length].view(-1, 1).long()
-        v_onehot[i, :length].scatter_(1, label, 1.0)
-        acc += length
-    return v_onehot
-
-def assureRatio(img):
-    """Ensure imgH <= imgW."""
-    b, c, h, w = img.size()
-    if h > w:
-        main = nn.UpsamplingBilinear2d(size=(h, h), scale_factor=None)
-        img = main(img)
-    return img
-
 
 class ToTensorTarget(object):
     """Convert ndarrays in sample to Tensors."""
 
     def __call__(self, sample):
         sat_img, label = sample['img'], sample['label']
-        return {'sat': transforms.functional.to_tensor(sat_img.copy()),
+        return {'img': transforms.functional.to_tensor(sat_img.copy()),
                 'label' : sample['label']}
 
 
@@ -93,8 +75,8 @@ class NormalizeTarget(transforms.Normalize):
     """Normalize a tensor and also return the target"""
 
     def __call__(self, sample):
-        return {'sat': transforms.functional.normalize(sample['sat'], self.mean, self.std),
-                'mask': sample['mask']}
+        return {'img': transforms.functional.normalize(sample['img'], self.mean, self.std),
+                'label': sample['label']}
 
 class Resize(object):
     """Resize."""

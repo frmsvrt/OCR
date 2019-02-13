@@ -42,4 +42,9 @@ def generator_cfg():
 
 def trainer_cfg():
     cfg = AttrDict()
+    cfg.DATANAME = './data/data.csv'
+    cfg.bs = 256
+    cfg.epochs = 10
+    cfg.lr = 1e-4
+    cfg.wl2 = 1e-6
     return cfg

@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+# from helpers import data_parallel
+
 class ConvRelu(nn.Module):
     def __init__(self, nin, nout, k, s, p, bn=False):
         super().__init__()
@@ -30,8 +32,9 @@ class LSTM(nn.Module):
             self.ngpu = 0
 
     def forward(self, input):
-        recurrent, _ = data_parallel(
-            self.rnn, input, self.ngpu)
+        # recurrent, _ = data_parallel(
+        #    self.rnn, input, self.ngpu)
+        recurrent, _ = self.rnn(input)
         T, b, h = recurrent.size()
         t_rec = recurrent.view(T * b, h)
 
@@ -62,10 +65,10 @@ class CRNN(nn.Module):
 
     def forward(self, x):
         x = self.cnn(x)
-        print(x.size())
+        # print(x.size())
         b, c, h, w = x.size()
         x = x.squeeze(2)
         x = x.permute(2, 0, 1)
         x = self.rnn(x)
-        print(x.size())
+        # print(x.size())
         return x
