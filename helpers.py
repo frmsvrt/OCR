@@ -23,8 +23,11 @@ class Converter(object):
             text = [self.dict[char] for char in text]
             length = [len(text)]
         elif isinstance(text, collections.Iterable):
-            length = [len(s) for s in text]
-            text = ''.join(text)
+            try:
+              length = [len(str(s)) for s in text]
+            except:
+              print(text)
+            text = ''.join([str(s) for s in text])
             text, _ = self.encode(text)
         return (torch.IntTensor(text), torch.IntTensor(length))
 

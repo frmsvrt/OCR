@@ -55,7 +55,8 @@ def generate(text, font, text_color, font_size, space_width):
 
 if __name__ == '__main__':
     cfg = generator_cfg()
-    for idx, word in tqdm(enumerate(cfg.d[:512])):
+    print('Total num of samples: %d' % len(cfg.d))
+    for idx, word in tqdm(enumerate(cfg.d)):
         font = random.choice(cfg.fonts)
         fs = random.choice(cfg.fs)
         space_width = random.choice(cfg.sw)

@@ -20,7 +20,7 @@ file_ids = [''.join(i) for i in itertools.product(VOCAB, repeat=4)]
 file_index = {f: i for (i, f) in enumerate(file_ids)}
 
 with open('./misc/dicts/en.txt', 'r') as f:
-        d = f.readlines()
+    d = f.readlines()
 
 def generator_cfg():
     cfg = AttrDict()
@@ -44,7 +44,11 @@ def trainer_cfg():
     cfg = AttrDict()
     cfg.DATANAME = './data/data.csv'
     cfg.bs = 256
-    cfg.epochs = 10
-    cfg.lr = 1e-4
-    cfg.wl2 = 1e-6
+    cfg.epochs = 70
+    cfg.lr = 1e-3
+    cfg.wl2 = 1e-7
+    cfg.valid_loss = float('Inf')
+    cfg.train_loss = float('Inf')
+    cfg.val_acc = float('Inf')
+    cfg.train_acc = float('Inf')
     return cfg
