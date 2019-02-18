@@ -15,7 +15,7 @@ import torch.functional as F
 from torch.autograd import Variable as V
 from torchvision import transforms
 
-from helpers import Converter, Resize, ToTensorTarget, NormalizeTarget
+from helpers import Converter, Resize, ToTensorTarget, NormalizeTarget, Sharpnes, Blur
 from models import crnn, densenet
 from configs import generator_cfg, trainer_cfg
 from datareader import DataStream
@@ -28,7 +28,7 @@ def _acc(preds, labels, lengths, total_size, converter):
     preds = converter.decode_probs(preds)
     labels = converter.decode(labels, lengths)
     for pred, label in zip(preds, labels):
-        if pred == label:
+        if pred.lower() == label.lower():
             acc += 1
     ret = acc / total_size
     return ret
@@ -38,10 +38,10 @@ def main():
     global t_cfg
     global g_cfg
     print(g_cfg.alph)
-    transform = transforms.Compose([Resize((128, 32)),
+    transform = transforms.Compose([Resize((96, 32)), Sharpnes(), Affine(),
                                     ToTensorTarget()])
-                                    # NormalizeTarget([0.3956, 0.5763, 0.5616],
-                                    #                 [0.1535, 0.1278, 0.1299])])
+                                    # NormalizeTarget([0.485, 0.456, 0.406],
+                                    #                 [0.229, 0.224, 0.225])])
 
     # data preparation
     # create one fold split with 1/5 ration for validation
@@ -69,7 +69,7 @@ def main():
                            weight_decay=t_cfg.wl2,
                            )
     # lr_sched = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
-    lr_sched = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[5,50],gamma=0.1)
+    lr_sched = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[7,20],gamma=0.1)
 
     for epoch in range(t_cfg.epochs):
         lr_sched.step()
@@ -83,7 +83,7 @@ def main():
                              mode='train',
                              )
         print()
-        if epoch > 40:
+        if epoch > t_cfg.pivot:
           if loss < t_cfg.valid_loss:
             t_cfg.valid_loss = loss
             acc = do_epoch(vdl,
@@ -96,8 +96,8 @@ def main():
                 mode='valid',
                 )
             torch.save(model, './model.pt')
-            print('Validation acc: %.3f' % acc)
-        print('Finished epoch: %d' % epoch, 'Loss: %.5f' % loss,
+            print('Validation acc: %.5f' % acc)
+        print('Finished epoch: %d' % epoch, 'Loss: %.8f' % loss,
               'Acc: %.3f' % acc)
 
 def do_epoch(dl,
@@ -140,7 +140,7 @@ def do_epoch(dl,
                 A.append(acc)
 
                 print('\r', 'Train step: %d' % (idx+1), '|', len(dl),
-                      'Loss %.7f' % np.mean(L), end=' ')
+                      'Loss %.8f' % np.mean(L), end=' ')
         except:
             print('--')
         return np.mean(L), np.mean(A)
@@ -158,7 +158,7 @@ def do_epoch(dl,
                 A.append(acc)
 
                 print('\r', 'Val step: %d' % (idx + 1), '|', len(dl),
-                      'Acc: %.3f' % acc, end=' ')
+                      'Acc: %.5f' % acc, end=' ')
         return np.mean(A)
 
 if __name__ == '__main__':

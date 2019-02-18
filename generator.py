@@ -24,7 +24,7 @@ def generate(text, font, text_color, font_size, space_width):
         text_height = max([image_font.getsize(w)[1] for w in words])
 
         roll = np.random.random()
-        if roll > 0.77:
+        if roll > 1.1:
             txt_img = Image.open(random.choice(cfg.bgs))
             h, w = txt_img.size
             xs, ys = np.random.randint(h-text_width), np.random.randint(w-text_height)

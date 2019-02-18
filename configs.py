@@ -44,9 +44,10 @@ def trainer_cfg():
     cfg = AttrDict()
     cfg.DATANAME = './data/data.csv'
     cfg.bs = 256
-    cfg.epochs = 70
+    cfg.epochs = 30
     cfg.lr = 1e-3
     cfg.wl2 = 1e-7
+    cfg.pivot = 15
     cfg.valid_loss = float('Inf')
     cfg.train_loss = float('Inf')
     cfg.val_acc = float('Inf')
