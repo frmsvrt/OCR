@@ -15,7 +15,7 @@ import torch.functional as F
 from torch.autograd import Variable as V
 from torchvision import transforms
 
-from helpers import Converter, Resize, ToTensorTarget, NormalizeTarget, Sharpnes, Blur
+from helpers import Converter, Resize, ToTensorTarget, NormalizeTarget, Sharpnes, Blur, Affine
 from models import crnn, densenet
 from configs import generator_cfg, trainer_cfg
 from datareader import DataStream
@@ -38,7 +38,7 @@ def main():
     global t_cfg
     global g_cfg
     print(g_cfg.alph)
-    transform = transforms.Compose([Resize((96, 32)), Sharpnes(), Affine(),
+    transform = transforms.Compose([Resize((128, 32)), Sharpnes(), Affine(),
                                     ToTensorTarget()])
                                     # NormalizeTarget([0.485, 0.456, 0.406],
                                     #                 [0.229, 0.224, 0.225])])
