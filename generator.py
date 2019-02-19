@@ -12,6 +12,8 @@ from tqdm import tqdm
 from configs import generator_cfg
 
 DATA_PATH = './data2/'
+if not os.path.exists(DATA_PATH):
+  os.makedirs(DATA_PATH)
 cfg = generator_cfg()
 kernel = np.ones((5,5),np.float32)/27
 
