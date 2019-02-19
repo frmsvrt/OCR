@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from configs import generator_cfg
 
-DATA_PATH = './data/'
+DATA_PATH = './data2/'
 cfg = generator_cfg()
 kernel = np.ones((5,5),np.float32)/27
 

@@ -96,6 +96,6 @@ ___
 | ![Example 1](./misc/good1.png)      | volga-moscow   | volga-moscow |
 | ![Example 2](./misc/good2.png)      | VK.com         |   VK.com |
 | ![Example 6](./misc/good3.png)      | Gentoo         | Gentoo     |
-| ![Example 3](./misc/fail1.png)      | felt-shod      |    abdicant |
-| ![Example 4](./misc/fail2.png)      |  idk lol       | abdicant  |
-| ![Example 5](./misc/fail3.png)      | woollike       |  abdicant |
+| ![Example 3](./misc/fail1.png)      | abdicant       |    felt-shod |
+| ![Example 4](./misc/fail2.png)      | abdicant       | idk lol  |
+| ![Example 5](./misc/fail3.png)      | abdicant       |  woollike |

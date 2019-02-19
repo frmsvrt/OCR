@@ -19,7 +19,7 @@ VOCAB = LetterRange('a', 'z') + LetterRange('A', 'Z') + LetterRange('0', '9')
 file_ids = [''.join(i) for i in itertools.product(VOCAB, repeat=4)]
 file_index = {f: i for (i, f) in enumerate(file_ids)}
 
-with open('./misc/dicts/en.txt', 'r') as f:
+with open('./misc/dicts/vocabulary.txt', 'r') as f:
     d = f.readlines()
 
 def generator_cfg():
@@ -42,9 +42,9 @@ def generator_cfg():
 
 def trainer_cfg():
     cfg = AttrDict()
-    cfg.DATANAME = './data/data.csv'
+    cfg.DATANAME = './data2/data.csv'
     cfg.bs = 256
-    cfg.epochs = 30
+    cfg.epochs = 60
     cfg.lr = 1e-3
     cfg.wl2 = 1e-7
     cfg.pivot = 15

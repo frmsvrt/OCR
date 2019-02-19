@@ -15,7 +15,7 @@ import torch.functional as F
 from torch.autograd import Variable as V
 from torchvision import transforms
 
-from helpers import Converter, Resize, ToTensorTarget, NormalizeTarget, Sharpnes, Blur, Affine
+from helpers import Converter, Resize, ToTensorTarget, NormalizeTarget, Sharpnes, Blur, Affine, Mono
 from models import crnn, densenet
 from configs import generator_cfg, trainer_cfg
 from datareader import DataStream
@@ -38,7 +38,7 @@ def main():
     global t_cfg
     global g_cfg
     print(g_cfg.alph)
-    transform = transforms.Compose([Resize((128, 32)), Sharpnes(), Affine(),
+    transform = transforms.Compose([Resize((128, 32)), Affine(),
                                     ToTensorTarget()])
                                     # NormalizeTarget([0.485, 0.456, 0.406],
                                     #                 [0.229, 0.224, 0.225])])
@@ -46,7 +46,7 @@ def main():
     # data preparation
     # create one fold split with 1/5 ration for validation
     data = pd.read_csv(t_cfg.DATANAME, sep=';', header=None)
-    train_data, valid_data = train_test_split(data, test_size=.2, random_state=312)
+    train_data, valid_data = train_test_split(data, test_size=.2, random_state=111)
 
     # train_data.to_csv('./train_data.csv')
     # valid_data.to_csv('./valid_data.csv')
@@ -69,10 +69,10 @@ def main():
                            weight_decay=t_cfg.wl2,
                            )
     # lr_sched = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
-    lr_sched = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[7,20],gamma=0.1)
+    # lr_sched = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[15,20],gamma=0.05)
+    lr_sched = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     for epoch in range(t_cfg.epochs):
-        lr_sched.step()
         loss, acc = do_epoch(tdl,
                              model,
                              optimizer,
@@ -97,8 +97,9 @@ def main():
                 )
             torch.save(model, './model.pt')
             print('Validation acc: %.5f' % acc)
+        lr_sched.step()
         print('Finished epoch: %d' % epoch, 'Loss: %.8f' % loss,
-              'Acc: %.3f' % acc)
+              'Acc: %.3f\n' % acc)
 
 def do_epoch(dl,
              model,
@@ -129,6 +130,7 @@ def do_epoch(dl,
                 preds_size = torch.IntTensor(t_cfg.bs).fill_(y_hat.shape[0])
                 loss = criterion(y_hat, Y, preds_size, Y_lengths) / Y.size()[0]
                 loss.backward()
+                torch.nn.utils.clip_grad_norm(model.parameters(), 5)
                 optimizer.step()
 
                 l = loss.detach().cpu().numpy()

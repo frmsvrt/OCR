@@ -100,6 +100,8 @@ class Converter(object):
 class ToTensorTarget(object):
     def __call__(self, sample):
         sat_img, label = sample['img'], sample['label']
+        # sat_img = -1 + 2.0 * sat_img/255.0
+        # print(sat_img.shape)
         return {'img': transforms.functional.to_tensor(sat_img.copy()),
                 'label' : sample['label']}
 
@@ -144,3 +146,11 @@ class Affine(object):
       return {'img' : affineT(sample['img']), 'label' : sample['label']}
     else:
       return sample
+
+class Mono(object):
+  def __call__(self, sample):
+    im = sample['img']
+    im = np.mean(np.array(im), axis=-1)
+    im = np.expand_dims(im, axis=-1)
+    print(im.shape)
+    return {'img' : im, 'label': sample['label']}
